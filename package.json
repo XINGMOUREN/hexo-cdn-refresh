@@ -1,6 +1,6 @@
 {
   "name": "hexo-cdn-refresh",
-  "version": "1.0.3",
+  "version": "1.1.2",
   "description": "Each time you deploy hexo automatically update Tencent Cloud CDN",
   "main": "index",
   "scripts": {},
