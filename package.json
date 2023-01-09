@@ -1,12 +1,12 @@
 {
-  "name": "hexo-deploy-tencentcloud-cdn",
-  "version": "0.0.3",
+  "name": "hexo-cdn-refresh",
+  "version": "1.0.3",
   "description": "Each time you deploy hexo automatically update Tencent Cloud CDN",
   "main": "index",
   "scripts": {},
   "repository": {
     "type": "git",
-    "url": "https://github.com/Techeek/hexo-deploy-tencentcloud-cdn.git"
+    "url": "https://github.com/XINGMOUREN/hexo-cdn-refresh"
   },
   "keywords": [
     "hexo",
@@ -15,9 +15,9 @@
     "CDN"
   ],
   "author": {
-    "name": "Techeek",
-    "email": "cheng@techeek.cn",
-    "url": "https://www.techeek.cn"
+    "name": "HAPPYKING",
+    "email": "2638526782@qq.com",
+    "url": "https://www.happyking.top"
   },
   "license": "MIT",
   "dependencies": {
