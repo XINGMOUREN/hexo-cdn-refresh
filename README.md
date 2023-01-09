@@ -15,6 +15,8 @@ npm install hexo-cdn-refresh -s
 tencentcdn:
  secretId: '*******************' # 你在https://console.cloud.tencent.com/cam/capi 获取到的ID
  secretKey: '******************' * # 你在https://console.cloud.tencent.com/cam/capi 获取到的SecretKey
+ type: 1 #刷新方式,1为只刷新变更资源,2为刷新网站下的全部缓存
+ timer: 60000 #延时器,单位为毫秒,延时多长时间再执行刷新命令
 ```
 
 在hexo的`_congig.yml`的`deploy`配置项中添加
@@ -24,7 +26,7 @@ deploy:
 - type: tencent_cdn
 ```
 
-运行`hexo d`即可完成上传
+运行`hexo d`即可上传网站并且刷新cdn
 
 
 
