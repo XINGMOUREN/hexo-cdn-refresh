@@ -1,3 +1,4 @@
+console.log('目前延时器设置:' + timer + '毫秒,请等待延时器倒计时结束后自动刷新cdn缓存');
 module.exports = function(args) {
 var qcloudSDK = require('./submit'); 
 var config = this.config;
