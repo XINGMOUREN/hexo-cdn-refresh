@@ -31,7 +31,7 @@ deploy:
 - type: tencent_cdn
 ```
 
-延时器说明:主要为网站托管再GitHub Pages,vercel,或者netlify的用户设置,当你更新网站后,这些托管平台需要一段的时间来构建页面,如果不设置延时器,那么会导致cdn立即刷新,拉去到未更新的源站内容,所以说延时器必须填写,具体数值看自己的页面构建速度,如果是其他部署方式,不需要延时器的就填写0
+延时器说明:主要为网站托管在GitHub Pages,vercel,或者netlify的用户设置,当你更新网站后,这些托管平台需要一段的时间来构建页面,如果不设置延时器,那么会导致cdn立即刷新,拉去到未更新的源站内容,所以说延时器必须填写,具体数值看自己的页面构建速度,如果是其他部署方式,不需要延时器的就填写0
 
 注意:`- type: tencent_cdn`一定要加在最后面,因为hexo d这个命令是按照type的顺序运行的,如果你加载了前面会先刷新cdn的缓存,再上传文件,达不到更新网站的效果
 
@@ -93,9 +93,67 @@ deploy:
 
 # 开发过程/原理说明
 
+## 开发的原因
+
 之所以开发这个插件是因为之前本站开启了`sw`,而且为了保证每一次sw刷新后用户拉取的资源为最新资源,所以说我当时就把CDN设置为了`html`文件不刷新,这样更新文章后无需自动刷新便可以达到更新网站的目的,(~~当然修改js,css文件后还需要手动刷新缓存~~)
 
 但是这样的问题也是显而易见,那就是我的`html`文件基本上全部回源了,但是我的静态站点又是以html文件居多,那我这个CDN不是用了个寂寞？
+
+所以说我便把我的CDN缓存设置为了全部缓存365天,但是问题也随之而来,那就是每次更新文章/魔改后,都要前往腾讯云控制台进行手动刷新，对此我也是很无语啊
+
+于是便开始开发这个插件,其实说起来也很简单,一开始我找到了[hexo-deploy-tencentcloud-cdn ](https://www.npmjs.com/package/hexo-deploy-tencentcloud-cdn)这个插件,但是很不幸,这个插件已经挂掉了，而且它只支持刷新你的首页,也就是说如果你更新了文章或者css,js一样还是要手动刷新,ps~~原项目作者于2018年已经停止更新了,所以说我感觉指望作者开发玩不太可靠~~
+
+## 着手修复
+
+于是我便开始着手修复这个插件(或者说是在它的基础上加以改造)
+
+> 这个插件的原理很简单,就是通过腾讯云的api接口上传CDN刷新的post请求
+
+所以说首先我修复了它的api接口功能,这是改动后的第一版
+
+```js
+module.exports = function(args) {
+var qcloudSDK = require('./submit'); 
+var config = this.config;
+var secret_Id = config.tencentcdn.secretId;
+var secret_Key = config.tencentcdn.secretKey;
+var url = config.url
+qcloudSDK.config({
+    secretId: secret_Id,
+    secretKey: secret_Key
+})
+qcloudSDK.request('RefreshCdnUrl', {
+    'urls.0': url
+}, (res) => {
+console.log('腾讯云CDN首页刷新推送结果' + res);
+// console.log('secret_Id:' + secret_Id);
+// console.log('secret_Key:' + secret_Key);
+// console.log('url:' + url);
+})
+};
+```
+
+其实我做的也就是把源码中的`1`改成了`0`(因为原来的插件太久没维护,所以说部分参数失效了),但这样的话我们完成了初步的api接口上传的功能
+
+之后要做的就是对插件的上传参数修改一下,一开始我是直接添加了一个配置项`refresh-url`,给他填写
+
+```yml
+https://blog.happyking.top/*/*.*
+```
+
+按照理论来说这样应该就ok了,但是最终的结果是不行,通过阅读`腾讯云apiv2.0`的文档得知腾讯云的url刷新方式不支持通配符,但是还有一种刷新方式--`目录刷新`所以说我只要将上传的post参数改为目录刷新的即可
+
+修改完成后便能够成功刷新cdn缓存了,但是我发现了一个问题就是,当你更新了源站资源后,托管平台(我的在netlify上面,用GitHub Action部署)需要一定的时间来进行页面构建,但是这个插件却在构建完成之前就提交了刷新请求,所以说导致刷新出的还是老旧的资源
+
+由于这个插件的运行是绑定在`hexo d`这个命令的,我也没找到让各个命令延时运行的方法,于是就采用了`setTimeout()`设定了一个延时器的选项让插件延时
+
+之后的工作就是填写package,`npm publish`发包就完工了
+
+# 二次开发指南
+
+请修改`libs/push.js`这个文件
+
+具体参数请阅读[全站加速网络 缓存刷新-API 文档-文档中心-腾讯云 (tencent.com)](https://cloud.tencent.com/document/product/570/38855#.E8.B0.83.E7.94.A8.E7.A4.BA.E4.BE.8B)
 
 
 
